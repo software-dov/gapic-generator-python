@@ -221,7 +221,8 @@ class MessageType:
         return getattr(self.message_pb, name)
 
     def __hash__(self):
-        return hash(self.name)
+        # Identity is sufficiently unambiguous.
+        return hash(self.ident)
 
     @utils.cached_property
     def field_types(self) -> Sequence[Union['MessageType', 'EnumType']]:
@@ -238,7 +239,8 @@ class MessageType:
         Union['MessageType', 'EnumType']
     ]:
         """Return all composite fields used in this proto's messages."""
-        types: List[Union['MessageType', 'EnumType']] = []
+        types: Set[Union['MessageType', 'EnumType']] = set()
+
         stack = [iter(self.fields.values())]
         while stack:
             fields_iter = stack.pop()
@@ -246,7 +248,7 @@ class MessageType:
                 if field.message and field.type not in types:
                     stack.append(iter(field.message.fields.values()))
                 if not field.is_primitive:
-                    types.append(field.type)
+                    types.add(field.type)
 
         return tuple(types)
 
@@ -391,8 +393,19 @@ class EnumType:
         default_factory=metadata.Metadata,
     )
 
+    def __hash__(self):
+        # Identity is sufficiently unambiguous.
+        return hash(self.ident)
+
     def __getattr__(self, name):
         return getattr(self.enum_pb, name)
+
+    @property
+    def resource_path(self) -> Optional[str]:
+        # This is a minor duck-typing workaround for the resource_messages
+        # property in the Service class: we need to check fields recursively
+        # to see if they're resources, and recursive_field_types includes enums
+        return None
 
     @property
     def ident(self) -> metadata.Address:
@@ -830,11 +843,18 @@ class Service:
     def resource_messages(self) -> FrozenSet[MessageType]:
         """Returns all the resource message types used in all
         request fields in the service."""
+        def gen_resources(message):
+            if message.resource_path:
+                yield message
+
+            for type_ in message.recursive_field_types:
+                if type_.resource_path:
+                    yield type_
+
         return frozenset(
-            field.message
+            resource_msg
             for method in self.methods.values()
-            for field in method.input.fields.values()
-            if field.message and field.message.resource_path
+            for resource_msg in gen_resources(method.input)
         )
 
     @utils.cached_property
