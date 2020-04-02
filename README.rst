@@ -5,7 +5,7 @@ API Client Generator for Python
 
     A generator for protocol buffer described APIs for and in Python 3.
 
-This is a proof-of-concept generator for API client libraries for APIs
+This is a generator for API client libraries for APIs
 specified by `protocol buffers`_, such as those inside Google.
 It takes a protocol buffer (with particular annotations) and uses it
 to generate a client library.
@@ -27,12 +27,6 @@ Documentation
 `Documentation`_ is available on Read the Docs.
 
 .. _documentation: https://gapic-generator-python.readthedocs.io/
-
-Disclaimer
-----------
-
-This is not an official Google product.
-
 
 .. |release level| image:: https://img.shields.io/badge/release%20level-beta-yellow.svg?style&#x3D;flat
   :target: https://cloud.google.com/terms/launch-stages
