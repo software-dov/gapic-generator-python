@@ -8,6 +8,14 @@ filegroup(
     visibility = ["//visibility:public"],
 )"""
 
+_BLACK_PY_BUILD_FILE = """
+py_binary(
+    name = "black",
+    srcs = glob(["**/*.py"]),
+    visibility = ["//visibility:public"],
+)
+"""
+
 def gapic_generator_python():
     _maybe(
         pip_import,
@@ -61,6 +69,14 @@ def gapic_generator_python():
         strip_prefix = "gapic-generator-03abac35ec0716c6f426ffc1532f9a62f1c9e6a2",
         urls = ["https://github.com/googleapis/gapic-generator/archive/03abac35ec0716c6f426ffc1532f9a62f1c9e6a2.zip"],
     )
+
+    _maybe(
+        http_archive,
+        name = "pypi_black",
+        strip_prefix = "black-19.10b0",
+        urls = ["https://github.com/psf/black/archive/19.10b0.tar.gz"],
+        build_file_content = _BLACK_PY_BUILD_FILE,
+      )
 
 def gapic_generator_register_toolchains():
     native.register_toolchains(

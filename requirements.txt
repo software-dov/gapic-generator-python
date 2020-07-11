@@ -7,3 +7,4 @@ protobuf==3.12.2
 pypandoc==1.5
 PyYAML==5.3.1
 dataclasses==0.6  # TODO(busunkim) remove when 3.6 support is dropped
+black==19.10b0    # TODO(dovs) pick first GA release when available
