@@ -53,11 +53,7 @@ def _py_gapic_postprocessed_srcjar_impl(ctx):
     output_dir_name = ctx.label.name
 
     output_main = ctx.outputs.main
-    output_test = ctx.outputs.test
-    output_smoke_test = ctx.outputs.smoke_test
-    output_pkg = ctx.outputs.pkg
-    outputs = [output_main, output_test, output_smoke_test, output_pkg]
-
+    
     output_dir_path = "%s/%s" % (output_main.dirname, output_dir_name)
 
     # Note the script is more complicated than it intuitively should be because of limitations
@@ -67,24 +63,9 @@ def _py_gapic_postprocessed_srcjar_impl(ctx):
     unzip -q {gapic_srcjar} -d {output_dir_path}
     {formatter} -q {output_dir_path}
     pushd {output_dir_path}
-    zip -q -r {output_dir_name}-pkg.srcjar noxfile.py setup.py setup.cfg docs MANIFEST.in README.rst LICENSE
-    rm -rf noxfile.py setup.py docs
-    zip -q -r {output_dir_name}-test.srcjar tests/unit
-    rm -rf tests/unit
-    if [ -d "tests/system" ]; then
-        zip -q -r {output_dir_name}-smoke-test.srcjar tests/system
-        rm -rf tests/system
-    else
-        touch empty_file
-        zip -q -r {output_dir_name}-smoke-test.srcjar empty_file
-        zip -d {output_dir_name}-smoke-test.srcjar empty_file
-    fi
-    zip -q -r {output_dir_name}.srcjar . -i \*.py
+    zip -q -r {output_dir_name}.srcjar .
     popd
     mv {output_dir_path}/{output_dir_name}.srcjar {output_main}
-    mv {output_dir_path}/{output_dir_name}-test.srcjar {output_test}
-    mv {output_dir_path}/{output_dir_name}-smoke-test.srcjar {output_smoke_test}
-    mv {output_dir_path}/{output_dir_name}-pkg.srcjar {output_pkg}
     rm -rf {output_dir_path}
     """.format(
         gapic_srcjar = gapic_srcjar.path,
@@ -92,28 +73,13 @@ def _py_gapic_postprocessed_srcjar_impl(ctx):
         output_dir_path = output_dir_path,
         formatter = formatter.path,
         output_main = output_main.path,
-        output_test = output_test.path,
-        output_smoke_test = output_smoke_test.path,
-        output_pkg = output_pkg.path,
     )
 
     ctx.actions.run_shell(
         inputs = [gapic_srcjar],
         command = script,
-        outputs = outputs,
+        outputs = [output_main],
     )
-
-    return [
-        DefaultInfo(
-            files = depset(direct = outputs),
-        ),
-        GapicInfo(
-            main = output_main,
-            test = output_test,
-            smoke_test = output_smoke_test,
-            pkg = output_pkg,
-        ),
-    ]
     
 _py_gapic_postprocessed_srcjar = rule(
     implementation = _py_gapic_postprocessed_srcjar_impl,

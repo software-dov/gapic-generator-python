@@ -30,3 +30,8 @@ def py_gapic_library(name, srcs, plugin_args = [], opt_args = [], **kwargs):
         output_suffix = srcjar_output_suffix,
         **kwargs
     )
+
+    _py_gapic_src_pkg(
+        name = name + "_srcjar",
+        gapic_srcjar = ":%s" % name + "_srcja" + "_raw",
+    )
